@@ -1,5 +1,8 @@
 # Environnement virtuel
-
+# Environnements virtuels
+env/
+venv/
+backend/env/
 
 venv/
 .env
@@ -38,3 +41,18 @@ node_modules/
 dist/
 build/
 
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Node modules
+frontend/node_modules/
+*.log
+
+# Frontend build
+frontend/build/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
