@@ -1,0 +1,40 @@
+# Environnement virtuel
+
+
+venv/
+.env
+*.env
+
+# Fichiers base de données
+*.duckdb
+*.duckdb-shm
+*.duckdb-wal
+
+# Pycache & compilés
+__pycache__/
+*.py[cod]
+*.so
+*.pyo
+
+# Logs
+*.log
+
+# Fichiers de config perso
+*.vscode/
+.idea/
+*.swp
+
+# Jupyter (si jamais tu en utilises)
+.ipynb_checkpoints/
+
+# Systèmes Unix/Mac
+.DS_Store
+
+# Fichiers système
+Thumbs.db
+
+# React ou front (si tu ajoutes une partie frontend)
+node_modules/
+dist/
+build/
+
