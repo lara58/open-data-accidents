@@ -1,3 +1,0 @@
-Flask==2.2.0
-flask-cors==3.0.10
-cassandra-driver==3.28.0
