@@ -1,0 +1,50 @@
+.map-container {
+  height: 600px;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.loading-container {
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  font-size: 18px;
+  color: #666;
+}
+
+.no-data {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  font-size: 18px;
+  color: #666;
+}
+
+.accident-popup h3 {
+  margin-top: 0;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.accident-popup h3.severe {
+  background-color: rgba(255, 99, 71, 0.2);
+  color: #d32f2f;
+}
+
+.accident-popup h3.light {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #388e3c;
+}
+
+.accident-popup p {
+  margin: 5px 0;
+}

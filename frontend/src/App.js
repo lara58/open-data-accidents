@@ -1,42 +1,65 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import './App.css';
+import AccidentMap from './components/AccidentMap';
+import AccidentForm from './components/AccidentForm';
+import PredictionHistory from './components/PredictionHistory';
+import axios from 'axios';
 
 function App() {
   const [accidents, setAccidents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('map'); // 'map' ou 'predict' ou 'history'
 
   useEffect(() => {
-    fetch("http://localhost:5000/accidents")
-      .then(res => res.json())
-      .then(data => setAccidents(data))
-      .catch(err => console.error("Erreur API :", err));
+    axios.get('http://localhost:5000/mock-predictions')  // ou le bon endpoint qui existe
+      .then(res => {
+        setAccidents(res.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Erreur API :", err);
+        setLoading(false);
+      });
   }, []);
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
-      <h1>🚗 Liste des accidents (2023)</h1>
-      {accidents.length === 0 ? (
-        <p>Chargement des données...</p>
-      ) : (
-        <table border="1" cellPadding="8" style={{ borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Ville</th>
-              <th>Gravité</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {accidents.map((accident, index) => (
-              <tr key={index}>
-                <td>{accident.id || accident.num_acc || index}</td>
-                <td>{accident.ville || '-'}</td>
-                <td>{accident.gravite || '-'}</td>
-                <td>{accident.date || '-'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+    <div className="App">
+      <h1>Analyse des accidents de la route</h1>
+      
+      <div className="tabs">
+        <button 
+          className={`tab-btn ${activeTab === 'map' ? 'active' : ''}`}
+          onClick={() => setActiveTab('map')}
+        >
+          Carte des accidents
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'predict' ? 'active' : ''}`}
+          onClick={() => setActiveTab('predict')}
+        >
+          Prédiction de gravité
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          Historique des prédictions
+        </button>
+      </div>
+
+      <div className="content-container">
+        {activeTab === 'map' ? (
+          loading ? (
+            <p className="loading">Chargement des données...</p>
+          ) : (
+            <AccidentMap accidents={accidents} />
+          )
+        ) : activeTab === 'predict' ? (
+          <AccidentForm />
+        ) : (
+          <PredictionHistory />
+        )}
+      </div>
     </div>
   );
 }
