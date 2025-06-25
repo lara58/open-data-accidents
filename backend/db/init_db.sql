@@ -1,6 +1,6 @@
 -- Connexion DuckDB
 
--- Créer la table users
+-- Table users (
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL,
@@ -8,38 +8,36 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL
 );
 
--- créer la table accidents avec la foreign key
+-- Table accidents 
 CREATE TABLE IF NOT EXISTS accidents (
     id INTEGER PRIMARY KEY,
     user_id INTEGER,
     date_accident DATE NOT NULL,
     heure_accident TEXT,
     lieu_code_insee TEXT,
-    lieu_departement TEXT, --dep obligatoire pour la prediction (numerique)
+    lieu_departement INTEGER NOT NULL, -- obligatoire (numerique)
     lieu_commune TEXT,
     lieu_latitude DOUBLE,
     lieu_longitude DOUBLE,
-    agglomeration TEXT, --agg obligatoire pour la prediction (numerique)
-    type_route TEXT, --circ obligatoire pour la prediction (numerique)
-    condition_meteo TEXT, --atm obligatoire pour la prediction (numerique)
-    luminosite TEXT, --lum obligatoire pour la prediction (numerique)
+    agglomeration INTEGER NOT NULL, -- obligatoire (numerique)
+    type_route INTEGER NOT NULL, -- obligatoire (numerique)
+    condition_meteo INTEGER NOT NULL, -- obligatoire (numerique)
+    luminosite INTEGER NOT NULL, -- obligatoire (numerique)
     collision_type TEXT,
     gravite_accident TEXT,
     nb_vehicules INTEGER,
-    categorie_vehicule TEXT, --catv obligatoire pour la prediction (numerique)
+    categorie_vehicule INTEGER NOT NULL, -- obligatoire (numerique)
     nb_usagers INTEGER,
-    categorie_usager TEXT,--catu oobligatoire pour la prediction (numerique)
-    age INTEGER, --age obligatoire pour la prediction (numerique)
-    motif_deplacement TEXT, -- trajet obligatoire pour la prediction (numerique)
-    equipement_securite TEXT, --secu1 obligatoire pour la prediction (numerique)
-    place_usager TEXT, --place obligatoire pour la prediction (numerique)
-    sexe_usager TEXT, --sexe obligatoire pour la prediction (numerique)
-    manoeuvre_principal_accident TEXT, -- manv obligatoire pour la prediction (numerique)
-    type_moteur TEXT, --motor obligatoire pour la prediction (numerique)
-    vitesse_max INTEGER, --vma obligatoire pour la prediction (numerique)
-    point_choc_initial TEXT, --choc obligatoire pour la prediction (numerique)
+    categorie_usager INTEGER NOT NULL, -- obligatoire (numerique)
+    age INTEGER NOT NULL, -- obligatoire (numerique)
+    motif_deplacement INTEGER NOT NULL, -- obligatoire (numerique)
+    equipement_securite INTEGER NOT NULL, -- obligatoire (numerique)
+    place_usager INTEGER NOT NULL, -- obligatoire (numerique)
+    sexe_usager INTEGER NOT NULL, -- obligatoire (numerique)
+    manoeuvre_principal_accident INTEGER NOT NULL, -- obligatoire (numerique)
+    type_moteur INTEGER NOT NULL, -- obligatoire (numerique)
+    vitesse_max INTEGER NOT NULL, -- obligatoire (numerique)
+    point_choc_initial INTEGER NOT NULL, -- obligatoire (numerique)
     description TEXT,
     FOREIGN KEY(user_id) REFERENCES users(id)
 );
-
-

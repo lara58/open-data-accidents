@@ -2,17 +2,59 @@
 
 
 from models.accident_model import insert_accident, get_all_accidents, get_accident_by_id, get_all_accidents_for_user
+from services.predictor import predire_gravite
 from datetime import datetime
+
+# def enregistrer_accident(data, user_id):
+#     try:
+#         datetime.strptime(data["date_accident"], "%Y-%m-%d")  # Vérifie format de la date
+#         insert_accident(data, user_id)
+#         return {"message": "Accident enregistré avec succès"}, 201
+#     except (ValueError, TypeError) as e:
+#         return {"error": f"Erreur de validation : {str(e)}"}, 400
+#     except Exception as e:
+#         return {"error": f"Erreur interne : {str(e)}"}, 500
+
+
+
+REQUIRED_NUMERIC_FIELDS = [
+    "lieu_departement", "agglomeration", "type_route", "condition_meteo", "luminosite",
+    "categorie_vehicule", "categorie_usager", "age", "motif_deplacement", "equipement_securite",
+    "place_usager", "sexe_usager", "manoeuvre_principal_accident", "type_moteur",
+    "vitesse_max", "point_choc_initial"
+]
 
 
 def enregistrer_accident(data, user_id):
     try:
-        #validation date
+        # Vérification du format de la date
         datetime.strptime(data["date_accident"], "%Y-%m-%d")
+
+        # Validation des champs obligatoires
+        for field in REQUIRED_NUMERIC_FIELDS:
+            if field not in data:
+                raise ValueError(f"Champ obligatoire manquant : {field}")
+            if not isinstance(data[field], int):
+                raise TypeError(f"Le champ '{field}' doit être un entier.")
+
+        # Supprimer toute tentative d'ajout manuel de la gravité
+        if "gravite_accident" in data:
+            del data["gravite_accident"]
+
+        # Prédiction automatique de la gravité
+        gravite = predire_gravite(data)
+        data["gravite_accident"] = gravite
+
+        # Enregistrement dans la base
         insert_accident(data, user_id)
-        return {"message": "Accident enregistré avec succès"}, 201
+
+        return {"message": "Accident enregistré avec gravité prédite."}, 201
+
+    except (ValueError, TypeError) as e:
+        return {"error": f"Erreur de validation : {str(e)}"}, 400
     except Exception as e:
-        return {"error": f"Erreur d'enregistrement : {str(e)}"}, 400
+        return {"error": f"Erreur interne : {str(e)}"}, 500
+
 
 def lister_accidents():
     try:
