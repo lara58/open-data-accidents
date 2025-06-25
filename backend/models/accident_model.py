@@ -76,3 +76,15 @@ def get_all_accidents_for_user(user_id):
     rows = cursor.fetchall()
     keys = [col[0] for col in cursor.description]
     return [dict(zip(keys, row)) for row in rows]
+
+def update_accident(accident_id, data):
+    conn = get_db_connection()
+    columns = ", ".join(f"{key} = ?" for key in data.keys())
+    values = list(data.values()) + [accident_id]
+    conn.execute(f"UPDATE accidents SET {columns} WHERE id = ?", values)
+    conn.commit()
+
+def delete_accident(accident_id):
+    conn = get_db_connection()
+    conn.execute("DELETE FROM accidents WHERE id = ?", (accident_id,))
+    conn.commit()

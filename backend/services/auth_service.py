@@ -35,3 +35,4 @@ def login_user(email, password):
         return {"message": "Connexion réussie", "user": user["username"], "token": token}, 200
     else:
         return {"error": "Identifiants invalides"}, 401
+

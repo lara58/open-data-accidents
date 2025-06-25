@@ -1,6 +1,7 @@
 
 from db.connection import get_db_connection
 
+
 def insert_user(username, email, hashed_password):
     conn = get_db_connection()
 
@@ -35,3 +36,35 @@ def get_user_by_id(user_id):
         return None
     keys = ["id", "username", "email", "password"]
     return dict(zip(keys, result))
+
+
+def update_user_profile(user_id, username, email):
+    conn = get_db_connection()
+
+    # Vérifie si l'email est utilisé par un autre utilisateur
+    result = conn.execute("SELECT id FROM users WHERE email = ?;", (email,)).fetchone()
+    if result and result[0] != user_id:
+        raise ValueError("Email déjà utilisé par un autre utilisateur")
+
+    try:
+        conn.execute(
+            "UPDATE users SET username = ?, email = ? WHERE id = ?;",
+            (username, email, user_id)
+        )
+        conn.commit()
+        return True
+    except Exception as e:
+        print("Erreur update_user_profile:", e)
+        return False
+
+
+
+def update_user_password(user_id, hashed_password):
+    conn = get_db_connection()
+    conn.execute(
+        "UPDATE users SET password = ? WHERE id = ?;",
+        (hashed_password, user_id)
+    )
+    conn.commit()
+    return True
+
