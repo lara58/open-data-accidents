@@ -1,9 +1,10 @@
 // src/components/accidents/AccidentList.jsx
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Alert, Spinner } from 'react-bootstrap';
+import { Table, Button, Alert, Spinner, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { accidentService } from '../../services/accidentService';
 import { toast } from 'react-toastify';
+import AccidentMap from './AccidentMap';
 
 const AccidentList = ({ showAll = true }) => {
   const [accidents, setAccidents] = useState([]);
@@ -63,6 +64,16 @@ const AccidentList = ({ showAll = true }) => {
       
       {error && <Alert variant="danger">{error}</Alert>}
       
+      {/* Ajouter la carte avant la table des accidents */}
+      {!loading && accidents.length > 0 && (
+        <Card className="mb-4">
+          <Card.Body>
+            <AccidentMap accidents={accidents} />
+          </Card.Body>
+        </Card>
+      )}
+      
+      {/* Votre table d'accidents existante... */}
       {accidents.length === 0 ? (
         <Alert variant="info">Aucun accident trouvé.</Alert>
       ) : (
