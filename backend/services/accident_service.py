@@ -2,7 +2,7 @@
 
 
 from models.accident_model import insert_accident, get_all_accidents, get_accident_by_id, get_all_accidents_for_user
-from services.predictor import predire_gravite
+from services.train_modele import predire_gravite
 from datetime import datetime
 
 # def enregistrer_accident(data, user_id):
@@ -41,9 +41,11 @@ def enregistrer_accident(data, user_id):
         if "gravite_accident" in data:
             del data["gravite_accident"]
 
-        # Prédiction automatique de la gravité
-        gravite = predire_gravite(data)
+        # Prédiction automatique de la gravité et le score
+        gravite, pourcentage = predire_gravite(data)
+        
         data["gravite_accident"] = gravite
+        data["gravite_accident_proba"] = f"{pourcentage:.2f}%"  # Exemple : "87.50%"
 
         # Enregistrement dans la base
         insert_accident(data, user_id)

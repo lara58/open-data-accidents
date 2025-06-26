@@ -1,0 +1,16 @@
+agglomeration
+type_route
+condition_meteo
+luminosite
+categorie_vehicule
+categorie_usager
+age
+motif_deplacement
+equipement_securite
+place_usager
+sexe_usager
+manoeuvre_principal_accident
+type_moteur
+vitesse_max
+point_choc_initial
+lieu_departement
