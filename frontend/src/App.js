@@ -5,20 +5,33 @@ import AccidentForm from './components/AccidentForm';
 import PredictionHistory from './components/PredictionHistory';
 import axios from 'axios';
 
+// Configuration des URLs de l'API
+const API_URL = 'http://localhost:5000/api';
+
 function App() {
   const [accidents, setAccidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('map'); // 'map' ou 'predict' ou 'history'
 
   useEffect(() => {
-    axios.get('http://localhost:5000/mock-predictions')  // ou le bon endpoint qui existe
+    // Essayer d'abord avec l'API réelle, puis retomber sur les données de démo
+    axios.get(`${API_URL}/predictions`)
       .then(res => {
         setAccidents(res.data);
         setLoading(false);
       })
       .catch(err => {
-        console.error("Erreur API :", err);
-        setLoading(false);
+        console.error("Erreur API réelle:", err);
+        // Fallback sur les données de démo en cas d'erreur
+        axios.get('http://localhost:5000/mock-predictions')
+          .then(res => {
+            setAccidents(res.data);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error("Erreur API de démo:", err);
+            setLoading(false);
+          });
       });
   }, []);
 
@@ -55,9 +68,9 @@ function App() {
             <AccidentMap accidents={accidents} />
           )
         ) : activeTab === 'predict' ? (
-          <AccidentForm />
+          <AccidentForm apiUrl={API_URL} />
         ) : (
-          <PredictionHistory />
+          <PredictionHistory apiUrl={API_URL} />
         )}
       </div>
     </div>

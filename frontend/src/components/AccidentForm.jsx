@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './AccidentForm.css';
 
-const AccidentForm = () => {
+const AccidentForm = (props) => {
   // 1. Modifier les valeurs par défaut pour qu'elles correspondent aux options disponibles
   const [formData, setFormData] = useState({
     // Champs obligatoires pour la prédiction
@@ -24,8 +24,8 @@ const AccidentForm = () => {
     choc: '1', // point de choc initial (numérique)
     
     // Champs facultatifs pour enregistrement plus complet
-    date_accident: new Date().toISOString().substr(0, 10),
-    heure_accident: '',
+    mois: new Date().getMonth() + 1, // Mois actuel (1-12)
+    jour: new Date().getDate(), // Jour actuel (1-31)
     lieu_commune: '',
     description: '',
   });
@@ -49,7 +49,7 @@ const AccidentForm = () => {
     setResult(null);
 
     try {
-      // 2. Convertir également le département en nombre
+      // Conversion des données
       const dataToSend = {
         ...formData,
         dep: parseInt(formData.dep) || 0, // Ajouter une valeur par défaut
@@ -68,12 +68,14 @@ const AccidentForm = () => {
         trajet: parseInt(formData.trajet),
         secu1: parseInt(formData.secu1),
         catu: parseInt(formData.catu),
+        mois: parseInt(formData.mois),
+        jour: parseInt(formData.jour),
       };
 
       console.log("Données envoyées pour prédiction:", dataToSend);
       
-      // 3. Ajouter un timeout pour éviter les attentes infinies
-      const response = await axios.post('http://localhost:5000/predict', dataToSend, {
+      // Utiliser l'URL de l'API correcte
+      const response = await axios.post(`${props.apiUrl}/predictions`, dataToSend, {
         timeout: 10000 // 10 secondes
       });
       
@@ -285,6 +287,36 @@ const AccidentForm = () => {
         <div className="form-group">
           <h3>Conditions de l'accident</h3>
           
+          <div className="form-row">
+            <div className="form-field">
+              <label htmlFor="mois">Mois</label>
+              <input
+                id="mois"
+                name="mois"
+                type="number"
+                min="1"
+                max="12"
+                value={formData.mois}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            
+            <div className="form-field">
+              <label htmlFor="jour">Jour</label>
+              <input
+                id="jour"
+                name="jour"
+                type="number"
+                min="1"
+                max="31"
+                value={formData.jour}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
           <div className="form-row">
             <div className="form-field">
               <label htmlFor="dep">Département</label>

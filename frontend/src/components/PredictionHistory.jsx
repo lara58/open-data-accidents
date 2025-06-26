@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './PredictionHistory.css';
 
-const PredictionHistory = () => {
+const PredictionHistory = (props) => {
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,7 +14,7 @@ const PredictionHistory = () => {
       
       // Essayer d'abord avec l'endpoint normal
       try {
-        const response = await axios.get('http://localhost:5000/predictions', {
+        const response = await axios.get(`${props.apiUrl}/predictions`, {
           timeout: 5000
         });
         
