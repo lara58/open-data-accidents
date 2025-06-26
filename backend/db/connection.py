@@ -1,11 +1,13 @@
-import os
-import duckdb
+# Fichier SQL pour init la base
 
-# Chemin vers le répertoire racine du projet
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# backend/connection.py
+
+import duckdb
+import os
+
+# Connexion à une base persistante
+db_path = os.path.join(os.path.dirname(__file__), '../../accidents.duckdb')
 
 def get_db_connection():
-    """Établit et renvoie une connexion à la base de données DuckDB."""
-    db_path = os.path.join(PROJECT_ROOT, 'accidents.db')
-    conn = duckdb.connect(db_path)
-    return conn
+    return duckdb.connect(database=db_path, read_only=False)
+   

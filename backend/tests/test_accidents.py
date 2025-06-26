@@ -16,8 +16,8 @@ def client():
 
 def test_enregistrer_accident(client):
     data = {
-        "mois": 6,
-        "jour": 1,
+        "date_accident": "2024-06-01",
+        "heure_accident": "14:30",
         "lieu_code_insee": "75056",
         "lieu_departement": "75",
         "lieu_commune": "Paris",

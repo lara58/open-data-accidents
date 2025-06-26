@@ -1,57 +1,58 @@
 # Requêtes SQL/ORM liées aux accidents
 
 from db.connection import get_db_connection
+from services.train_modele import predire_gravite  # Cette fonction doit renvoyer 0 ou 1
 
 def insert_accident(data, user_id):
     conn = get_db_connection()
 
-    # Récupérer le max id existant dans la table accidents
-    result = conn.execute("SELECT MAX(id) FROM accidents").fetchone()
-    max_id = result[0] if result[0] is not None else 0
-    new_id = max_id + 1
+    required_numeric_fields = [
+        "lieu_departement", "agglomeration", "type_route", "condition_meteo", "luminosite",
+        "categorie_vehicule", "categorie_usager", "age", "motif_deplacement", "equipement_securite",
+        "place_usager", "sexe_usager", "manoeuvre_principal_accident", "type_moteur",
+        "vitesse_max", "point_choc_initial"
+    ]
 
+    # Vérification des champs obligatoires
+    for field in required_numeric_fields:
+        if field not in data:
+            raise ValueError(f"Le champ requis '{field}' est manquant.")
+        if not isinstance(data[field], int):
+            raise TypeError(f"Le champ '{field}' doit être un entier (INTEGER).")
+
+    # Prédiction automatique de la gravité (0 ou 1)
+    # gravite_predite = str(predire_gravite(data))
+
+    # Générer un nouvel ID
+    result = conn.execute("SELECT MAX(id) FROM accidents").fetchone()
+    new_id = (result[0] or 0) + 1
+
+    # Insertion des données
     conn.execute("""
         INSERT INTO accidents (
-            id, user_id, mois, jour, lieu_code_insee, lieu_departement, lieu_commune,
+            id, user_id, date_accident, heure_accident, lieu_code_insee, lieu_departement, lieu_commune,
             lieu_latitude, lieu_longitude, agglomeration, type_route, condition_meteo,
-            luminosite, collision_type, gravite_accident, nb_vehicules, categorie_vehicule,
+            luminosite, collision_type, gravite_accident,gravite_accident_proba, nb_vehicules, categorie_vehicule,
             nb_usagers, categorie_usager, age, motif_deplacement, equipement_securite,
             place_usager, sexe_usager, manoeuvre_principal_accident, type_moteur,
             vitesse_max, point_choc_initial, description
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        new_id,
-        user_id,
-        data.get("mois", 1),  # Valeur par défaut = 1
-        data.get("jour", 1),   # Valeur par défaut = 1
-        data.get("lieu_code_insee"),
-        data.get("lieu_departement"),
-        data.get("lieu_commune"),
-        data.get("lieu_latitude"),
-        data.get("lieu_longitude"),
-        data.get("agglomeration"),
-        data.get("type_route"),
-        data.get("condition_meteo"),
-        data.get("luminosite"),
-        data.get("collision_type"),
-        data.get("gravite_accident"),
-        data.get("nb_vehicules"),
-        data.get("categorie_vehicule"),
-        data.get("nb_usagers"),
-        data.get("categorie_usager"),
-        data.get("age"),
-        data.get("motif_deplacement"),
-        data.get("equipement_securite"),
-        data.get("place_usager"),
-        data.get("sexe_usager"),
-        data.get("manoeuvre_principal_accident"),
-        data.get("type_moteur"),
-        data.get("vitesse_max"),
-        data.get("point_choc_initial"),
-        data.get("description"),
+        new_id, user_id, data["date_accident"], data.get("heure_accident"),
+        data.get("lieu_code_insee"), data["lieu_departement"], data.get("lieu_commune"),
+        data.get("lieu_latitude"), data.get("lieu_longitude"), data["agglomeration"],
+        data["type_route"], data["condition_meteo"], data["luminosite"],
+        data.get("collision_type"), data.get("gravite_accident"),data.get("gravite_accident_proba"), data.get("nb_vehicules"),
+        data["categorie_vehicule"], data.get("nb_usagers"), data["categorie_usager"],
+        data["age"], data["motif_deplacement"], data["equipement_securite"],
+        data["place_usager"], data["sexe_usager"], data["manoeuvre_principal_accident"],
+        data["type_moteur"], data["vitesse_max"], data["point_choc_initial"],
+        data.get("description")
     ))
+
     conn.commit()
     return new_id
+
 
 
 def get_all_accidents():

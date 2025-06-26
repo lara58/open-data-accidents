@@ -1,79 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
-import AccidentMap from './components/AccidentMap';
-import AccidentForm from './components/AccidentForm';
-import PredictionHistory from './components/PredictionHistory';
-import axios from 'axios';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-toastify/dist/ReactToastify.css';
 
-// Configuration des URLs de l'API
-const API_URL = 'http://localhost:5000/api';
+import './App.css';
+
+// Composants
+import Navbar from './components/common/Navbar';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import AccidentList from './components/accidents/AccidentList';
+import AccidentForm from './components/accidents/AccidentForm';
+import AccidentDetail from './components/accidents/AccidentDetail';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 function App() {
-  const [accidents, setAccidents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('map'); // 'map' ou 'predict' ou 'history'
-
-  useEffect(() => {
-    // Essayer d'abord avec l'API réelle, puis retomber sur les données de démo
-    axios.get(`${API_URL}/predictions`)
-      .then(res => {
-        setAccidents(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Erreur API réelle:", err);
-        // Fallback sur les données de démo en cas d'erreur
-        axios.get('http://localhost:5000/mock-predictions')
-          .then(res => {
-            setAccidents(res.data);
-            setLoading(false);
-          })
-          .catch(err => {
-            console.error("Erreur API de démo:", err);
-            setLoading(false);
-          });
-      });
-  }, []);
-
   return (
-    <div className="App">
-      <h1>Analyse des accidents de la route</h1>
-      
-      <div className="tabs">
-        <button 
-          className={`tab-btn ${activeTab === 'map' ? 'active' : ''}`}
-          onClick={() => setActiveTab('map')}
-        >
-          Carte des accidents
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'predict' ? 'active' : ''}`}
-          onClick={() => setActiveTab('predict')}
-        >
-          Prédiction de gravité
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-          onClick={() => setActiveTab('history')}
-        >
-          Historique des prédictions
-        </button>
+    <Router>
+      <Navbar />
+      <div className="container mt-4">
+        <Routes>
+          {/* Routes publiques */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Routes protégées */}
+          <Route path="/accidents" element={
+            <ProtectedRoute>
+              <AccidentList showAll={true} />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/accidents/user" element={
+            <ProtectedRoute>
+              <AccidentList showAll={false} />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/accidents/new" element={
+            <ProtectedRoute>
+              <AccidentForm />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/accidents/edit/:id" element={
+            <ProtectedRoute>
+              <AccidentForm />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/accidents/:id" element={
+            <ProtectedRoute>
+              <AccidentDetail />
+            </ProtectedRoute>
+          } />
+          
+          {/* Redirection par défaut */}
+          <Route path="/" element={<Navigate to="/accidents" />} />
+        </Routes>
       </div>
-
-      <div className="content-container">
-        {activeTab === 'map' ? (
-          loading ? (
-            <p className="loading">Chargement des données...</p>
-          ) : (
-            <AccidentMap accidents={accidents} />
-          )
-        ) : activeTab === 'predict' ? (
-          <AccidentForm apiUrl={API_URL} />
-        ) : (
-          <PredictionHistory apiUrl={API_URL} />
-        )}
-      </div>
-    </div>
+      <ToastContainer position="top-right" />
+    </Router>
   );
 }
 

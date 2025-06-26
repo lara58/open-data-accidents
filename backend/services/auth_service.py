@@ -1,68 +1,38 @@
-import os
+
 import jwt
-from datetime import datetime, timedelta
-from models.auth_model import get_user_by_email, insert_user, get_user_by_id
+import datetime
+from models.auth_model import insert_user, get_user_by_email
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# Clé secrète pour JWT (utiliser variable d'environnement en production)
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'ta_cle_secrete_a_changer_en_production')
 
-def register_user(user_data):
-    """
-    Enregistre un nouvel utilisateur
-    """
-    # Vérifier si l'email existe déjà
-    existing_user = get_user_by_email(user_data.get('email'))
-    if existing_user:
-        return None, "Cet email est déjà utilisé"
-    
-    # Hasher le mot de passe (en production, utiliser bcrypt)
-    # password_hash = generate_password_hash(user_data.get('password'))
-    
-    # Enregistrer l'utilisateur
-    user_id = insert_user({
-        'username': user_data.get('username'),
-        'email': user_data.get('email'),
-        'password': user_data.get('password')  # En production, utiliser password_hash
-    })
-    
-    return user_id, None
+SECRET_KEY = "ta_clef_secrète"
+
+def create_token(user_id):
+    payload = {
+        "user_id": user_id,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+
+def register_user(username, email, password):
+    existing = get_user_by_email(email)
+    if existing:
+        return {"error": "Email déjà utilisé"}, 400
+    hashed_password = generate_password_hash(password)
+    try:
+        user_id = insert_user(username, email, hashed_password)
+        return {"message": "Inscription réussie", "user_id": user_id}, 201
+    except Exception as e:
+        # Gestion simple d'erreur (ex: utilisateur déjà existant)
+        return {"error": str(e)}, 400
+
 
 def login_user(email, password):
-    """
-    Authentifie un utilisateur et retourne ses données
-    """
-    # Récupérer l'utilisateur par email
     user = get_user_by_email(email)
-    
-    # Vérifier si l'utilisateur existe
-    if not user:
-        return None, "Email ou mot de passe incorrect"
-    
-    # Vérifier le mot de passe (en production, utiliser check_password_hash)
-    if user.get('password') != password:
-        return None, "Email ou mot de passe incorrect"
-    
-    return user, None
+    if user and check_password_hash(user["password"], password):
+        token = create_token(user["id"])
+        return {"message": "Connexion réussie", "user": user["username"], "token": token}, 200
+    else:
+        return {"error": "Identifiants invalides"}, 401
 
-def generate_token(user_id):
-    """
-    Génère un token JWT pour un utilisateur donné
-    """
-    token = jwt.encode({
-        'user_id': user_id,
-        'exp': datetime.utcnow() + timedelta(hours=24)
-    }, SECRET_KEY, algorithm="HS256")
-    
-    return token
-
-def verify_token(token):
-    """
-    Vérifie un token JWT et retourne les données décodées
-    """
-    try:
-        data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return data
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None

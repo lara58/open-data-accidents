@@ -1,79 +1,60 @@
 # Routes API (GET / POST / FILTER / etc....)
 
 from flask import Blueprint, request, jsonify
-from models.accident_model import insert_accident, get_all_accidents, get_accident_by_id, update_accident, delete_accident
-import traceback
+from services.accident_service import enregistrer_accident, lister_accidents, lire_accident_par_id, lister_accidents_by_user
+from utils.auth_decorator import token_required
 
-accident_bp = Blueprint('accidents', __name__)
+accident_bp = Blueprint("accidents", __name__)
 
-@accident_bp.route('/', methods=['GET'])
-def get_accidents():
-    try:
-        accidents = get_all_accidents()
-        return jsonify({"accidents": accidents})
-    except Exception as e:
-        print(f"❌ Erreur lors de la récupération des accidents: {str(e)}")
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+@accident_bp.route("", methods=["POST"])
+@token_required
+def ajouter(user_id):
+    data = request.get_json()
+    return enregistrer_accident(data, user_id)
 
-@accident_bp.route('/<int:accident_id>', methods=['GET'])
-def get_accident(accident_id):
-    try:
-        accident = get_accident_by_id(accident_id)
-        if accident:
-            return jsonify(accident)
-        else:
-            return jsonify({"error": "Accident non trouvé"}), 404
-    except Exception as e:
-        print(f"❌ Erreur lors de la récupération de l'accident: {str(e)}")
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
 
-@accident_bp.route('/', methods=['POST'])
-def create_accident():
-    try:
-        data = request.get_json()
-        
-        # Récupérer l'ID utilisateur (généralement extrait d'un token JWT)
-        user_id = 1  # Utilisateur par défaut pour la démo
-        
-        # Si des données de mois/jour ne sont pas fournies, utiliser la date actuelle
-        if 'mois' not in data or 'jour' not in data:
-            from datetime import datetime
-            now = datetime.now()
-            data['mois'] = now.month
-            data['jour'] = now.day
-            
-        accident_id = insert_accident(data, user_id)
-        
-        return jsonify({
-            "message": "Accident enregistré avec succès",
-            "accident_id": accident_id
-        }), 201
-        
-    except Exception as e:
-        print(f"❌ Erreur lors de la création d'un accident: {str(e)}")
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+@accident_bp.route("", methods=["GET"])
+@token_required
+def lire_tous(user_id):
+    return lister_accidents()
 
-@accident_bp.route('/<int:accident_id>', methods=['PUT'])
-def update_accident_route(accident_id):
-    try:
-        data = request.get_json()
-        update_accident(accident_id, data)
-        return jsonify({"message": f"Accident {accident_id} mis à jour avec succès"})
-    except Exception as e:
-        print(f"❌ Erreur lors de la mise à jour de l'accident: {str(e)}")
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
 
-@accident_bp.route('/<int:accident_id>', methods=['DELETE'])
-def delete_accident_route(accident_id):
-    try:
-        delete_accident(accident_id)
-        return jsonify({"message": f"Accident {accident_id} supprimé avec succès"})
-    except Exception as e:
-        print(f"❌ Erreur lors de la suppression de l'accident: {str(e)}")
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+@accident_bp.route("/user", methods=["GET"])
+@token_required
+def lire_perso(user_id):
+    return lister_accidents_by_user(user_id)
+
+
+@accident_bp.route("/<int:accident_id>", methods=["GET"])
+@token_required
+def lire_un(user_id, accident_id):
+    return lire_accident_par_id(accident_id)
+
+@accident_bp.route("/<int:accident_id>", methods=["PUT"])
+@token_required
+def modifier(user_id, accident_id):
+    from models.accident_model import get_accident_by_id, update_accident
+    accident = get_accident_by_id(accident_id)
+    if not accident:
+        return jsonify({"error": "Accident introuvable"}), 404
+    if accident["user_id"] != user_id:
+        return jsonify({"error": "Non autorisé"}), 403
+
+    data = request.get_json()
+    update_accident(accident_id, data)
+    return jsonify({"message": "Accident modifié"}), 200
+
+
+@accident_bp.route("/<int:accident_id>", methods=["DELETE"])
+@token_required
+def supprimer(user_id, accident_id):
+    from models.accident_model import get_accident_by_id, delete_accident
+    accident = get_accident_by_id(accident_id)
+    if not accident:
+        return jsonify({"error": "Accident introuvable"}), 404
+    if accident["user_id"] != user_id:
+        return jsonify({"error": "Non autorisé"}), 403
+
+    delete_accident(accident_id)
+    return jsonify({"message": "Accident supprimé"}), 200
 
