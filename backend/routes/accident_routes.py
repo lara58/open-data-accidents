@@ -27,8 +27,20 @@ def lire_perso(user_id):
 
 @accident_bp.route("/<int:accident_id>", methods=["GET"])
 @token_required
-def lire_un(user_id, accident_id):
-    return lire_accident_par_id(accident_id)
+def get_accident(user_id, accident_id):
+    from models.accident_model import get_accident_by_id
+    accident = get_accident_by_id(accident_id)
+    if not accident:
+        return jsonify({"error": "Accident non trouvé"}), 404
+    
+    # Vérifier si accident est un dictionnaire ou un objet avec to_dict()
+    if hasattr(accident, 'to_dict'):
+        accident_data = accident.to_dict()
+    else:
+        # Si c'est déjà un dictionnaire, l'utiliser tel quel
+        accident_data = accident
+    
+    return jsonify(accident_data), 200
 
 @accident_bp.route("/<int:accident_id>", methods=["PUT"])
 @token_required

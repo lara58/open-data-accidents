@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Card, Row, Col, Button, Alert, Container, Spinner } from 'react-bootstrap';
 import { accidentService } from '../../services/accidentService';
+import { authService } from '../../services/authService';
 import { toast } from 'react-toastify';
 
 // Définition des constantes manquantes
@@ -44,22 +45,37 @@ function AccidentDetail() {
   const [accident, setAccident] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
   
   useEffect(() => {
+    // Récupérer l'utilisateur connecté
+    const user = authService.getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+    }
+    
     const fetchAccident = async () => {
       try {
         const data = await accidentService.getAccidentById(id);
         setAccident(data);
+        setLoading(false);
       } catch (err) {
         setError("Erreur lors du chargement des détails de l'accident");
-        console.error(err);
-      } finally {
         setLoading(false);
       }
     };
     
     fetchAccident();
   }, [id]);
+  
+  // Fonction pour vérifier si l'utilisateur est le créateur de l'accident
+  const isAccidentCreator = () => {
+    if (!currentUser || !accident) return false;
+    console.log("Current user:", currentUser);
+    console.log("Accident user_id:", accident.user_id);
+    
+    return parseInt(currentUser.id) === parseInt(accident.user_id);
+  };
   
   const handleDelete = async () => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cet accident ?")) {
@@ -74,43 +90,38 @@ function AccidentDetail() {
     }
   };
   
+  // Affiche un spinner pendant le chargement
   if (loading) {
-    return (
-      <div className="text-center p-5">
-        <Spinner animation="border" role="status" />
-        <p className="mt-3">Chargement des détails...</p>
-      </div>
-    );
+    return <div className="text-center my-5"><Spinner animation="border" /></div>;
   }
   
+  // Gestion des erreurs
   if (error) {
-    return <Alert variant="danger">{error}</Alert>;
+    return <Alert variant="danger" className="my-3">{error}</Alert>;
   }
   
+  // Si pas d'accident trouvé
   if (!accident) {
-    return <Alert variant="warning">Accident non trouvé</Alert>;
+    return <Alert variant="info" className="my-3">Aucun accident trouvé.</Alert>;
   }
-
-  // Fonction utilitaire pour formater la date
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('fr-FR', options);
-  };
   
   return (
     <Container>
       <Card className="shadow-sm my-4">
-        <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
-          <span>Détails de l'accident du {formatDate(accident.date_accident)}</span>
-          <div>
-            <Link to={`/accidents/edit/${id}`} className="btn btn-warning me-2">
-              Modifier
-            </Link>
-            <Button variant="danger" onClick={handleDelete}>
-              Supprimer
-            </Button>
-          </div>
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <h2>Détails de l'accident du {new Date(accident.date_accident).toLocaleDateString()}</h2>
+          
+          {/* Afficher les boutons seulement si l'utilisateur est le créateur */}
+          {isAccidentCreator() && (
+            <div>
+              <Button as={Link} to={`/accidents/edit/${id}`} variant="warning" className="me-2">
+                Modifier
+              </Button>
+              <Button variant="danger" onClick={handleDelete}>
+                Supprimer
+              </Button>
+            </div>
+          )}
         </Card.Header>
         
         <Card.Body>
@@ -135,7 +146,7 @@ function AccidentDetail() {
                 <tbody>
                   <tr>
                     <th>Date</th>
-                    <td>{formatDate(accident.date_accident)}</td>
+                    <td>{new Date(accident.date_accident).toLocaleDateString()}</td>
                   </tr>
                   {accident.heure_accident && (
                     <tr>
